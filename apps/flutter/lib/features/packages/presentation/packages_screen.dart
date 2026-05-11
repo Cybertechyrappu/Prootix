@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/theme/color_schemes.dart';
-import '../providers/packages_provider.dart';
+import '../../../../core/theme/color_schemes.dart';
+import 'providers/packages_provider.dart';
 
 class PackagesScreen extends ConsumerStatefulWidget {
   const PackagesScreen({super.key});

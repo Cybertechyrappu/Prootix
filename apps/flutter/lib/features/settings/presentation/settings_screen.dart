@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/theme/color_schemes.dart';
-import '../providers/settings_provider.dart';
+import '../../../../core/theme/color_schemes.dart';
+import 'providers/settings_provider.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});

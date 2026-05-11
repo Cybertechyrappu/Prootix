@@ -63,10 +63,7 @@ class SessionsNotifier extends StateNotifier<List<Session>> {
   }
 
   void stopSession(int index) {
-    state = [
-      ...state,
-    ];
-    state = state.where((s, i) => i != index).toList();
+    state = state.where((_, i) => i != index).toList();
   }
 
   void pauseSession(int index) {

@@ -63,7 +63,7 @@ class TerminalSessionsNotifier extends StateNotifier<List<TerminalSession>> {
 
   void closeSession(int index) {
     if (state.length > 1) {
-      state = state.where((s, i) => i != index).toList();
+      state = state.where((_, i) => i != index).toList();
     }
   }
 }
