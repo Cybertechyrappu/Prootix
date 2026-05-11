@@ -100,7 +100,11 @@ jobs:
         run: cd apps/flutter && flutter pub get
 
       - name: Build debug APK
-        run: cd apps/flutter && flutter build apk --debug
+        run: |
+          cd apps/flutter
+          flutter clean
+          flutter pub get
+          flutter build apk --debug
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
