@@ -63,24 +63,34 @@ class SessionsNotifier extends StateNotifier<List<Session>> {
   }
 
   void stopSession(int index) {
-    state = state.where((_, i) => i != index).toList();
+    final newList = <Session>[];
+    for (var i = 0; i < state.length; i++) {
+      if (i != index) {
+        newList.add(state[i]);
+      }
+    }
+    state = newList;
   }
 
   void pauseSession(int index) {
     final session = state[index];
-    state = [
-      ...state.sublist(0, index),
-      Session(
-        name: session.name,
-        type: session.type,
-        status: 'Paused',
-        duration: session.duration,
-        memory: session.memory,
-        pid: session.pid,
-        createdAt: session.createdAt,
-      ),
-      ...state.sublist(index + 1),
-    ];
+    final newList = <Session>[];
+    for (var i = 0; i < state.length; i++) {
+      if (i == index) {
+        newList.add(Session(
+          name: session.name,
+          type: session.type,
+          status: 'Paused',
+          duration: session.duration,
+          memory: session.memory,
+          pid: session.pid,
+          createdAt: session.createdAt,
+        ));
+      } else {
+        newList.add(state[i]);
+      }
+    }
+    state = newList;
   }
 }
 
