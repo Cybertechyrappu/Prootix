@@ -1,8 +1,8 @@
 package com.qorvode.prootix
 
-import android.app.Application
+import io.flutter.embedding.android.FlutterApplication
 
-class Application : Application() {
+class Application : FlutterApplication() {
     override fun onCreate() {
         super.onCreate()
     }
