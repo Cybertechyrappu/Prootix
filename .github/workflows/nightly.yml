@@ -4,160 +4,49 @@ on:
   schedule:
     - cron: '0 0 * * *'
   workflow_dispatch:
-    inputs:
-      flutter_version:
-        description: 'Flutter version'
-        required: false
-        default: '3.22.0'
-        type: string
 
 env:
-  flutter_version: ${{ inputs.flutter_version || '3.22.0' }}
-  java_version: '17'
+  NODE_VERSION: '20'
+  JAVA_VERSION: '21'
 
 jobs:
-  nightly-checks:
-    name: Pre-build Checks
-    runs-on: ubuntu-latest
-    outputs:
-      date: ${{ steps.date.outputs.date }}
-      commit: ${{ steps.commit.outputs.hash }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Get build date
-        id: date
-        run: echo "date=$(date +'%Y%m%d')" >> $GITHUB_OUTPUT
-
-      - name: Get commit hash
-        id: commit
-        run: echo "hash=$(echo ${{ github.sha }} | cut -c1-7)" >> $GITHUB_OUTPUT
-
   build-nightly:
-    name: Build Nightly APKs
-    needs: nightly-checks
+    name: Build Nightly
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        abi: [arm64-v8a, armeabi-v7a, x86_64]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          flutter-version: ${{ env.flutter_version }}
-          channel: 'stable'
+          node-version: ${{ env.NODE_VERSION }}
 
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
-          java-version: ${{ env.java_version }}
+          java-version: ${{ env.JAVA_VERSION }}
           distribution: 'temurin'
-          cache: 'gradle'
 
-      - name: Cache Flutter dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.pub-cache
-            ~/.gradle/caches
-          key: flutter-${{ runner.os }}-${{ env.flutter_version }}-${{ hashFiles('**/pubspec.yaml') }}
-          restore-keys: |
-            flutter-${{ runner.os }}-${{ env.flutter_version }}-
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v2
 
       - name: Install dependencies
-        run: cd apps/flutter && flutter pub get
+        run: cd apps/mobile && npm ci
 
-      - name: Update version for nightly
-        run: |
-          cd apps/flutter
-          flutter version --no-pub | head -1 || true
-
-      - name: Build nightly APK (${{ matrix.abi }})
-        run: |
-          cd apps/flutter
-          flutter build apk --debug --target-platform android-${{ matrix.abi }} --split-per-abi
-
-      - name: Generate checksums
-        run: |
-          cd apps/flutter/build/app/outputs/flutter-apk
-          sha256sum app-debug-${{ matrix.abi }}.apk > app-debug-${{ matrix.abi }}.apk.sha256
+      - name: Build Debug APK
+        run: cd apps/mobile/android && ./gradlew assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: prootix-nightly-${{ matrix.abi }}
-          path: apps/flutter/build/app/outputs/flutter-apk/app-debug-${{ matrix.abi }}.apk
-          retention-days: 3
-
-      - name: Upload checksums
-        uses: actions/upload-artifact@v4
-        with:
-          name: prootix-nightly-checksums-${{ matrix.abi }}
-          path: apps/flutter/build/app/outputs/flutter-apk/app-debug-${{ matrix.abi }}.apk.sha256
-          retention-days: 3
-
-  build-universal-nightly:
-    name: Build Universal Nightly
-    needs: nightly-checks
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: ${{ env.flutter_version }}
-          channel: 'stable'
-
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with:
-          java-version: ${{ env.java_version }}
-          distribution: 'temurin'
-          cache: 'gradle'
-
-      - name: Cache Flutter dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.pub-cache
-            ~/.gradle/caches
-          key: flutter-${{ runner.os }}-${{ env.flutter_version }}-${{ hashFiles('**/pubspec.yaml') }}
-
-      - name: Install dependencies
-        run: cd apps/flutter && flutter pub get
-
-      - name: Build universal nightly APK
-        run: cd apps/flutter && flutter build apk --debug
-
-      - name: Generate checksums
-        run: |
-          cd apps/flutter/build/app/outputs/flutter-apk
-          sha256sum app-debug.apk > app-debug.apk.sha256
-
-      - name: Upload universal APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: prootix-nightly-universal
-          path: apps/flutter/build/app/outputs/flutter-apk/app-debug.apk
-          retention-days: 3
-
-      - name: Upload checksums
-        uses: actions/upload-artifact@v4
-        with:
-          name: prootix-nightly-universal-checksums
-          path: apps/flutter/build/app/outputs/flutter-apk/app-debug.apk.sha256
+          name: prootix-nightly
+          path: apps/mobile/android/app/build/outputs/apk/debug/app-debug.apk
           retention-days: 3
 
   upload-nightly:
-    name: Upload to Nightly Release
-    needs: [nightly-checks, build-nightly, build-universal-nightly]
+    name: Upload to GitHub
+    needs: build-nightly
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -165,47 +54,26 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Download all artifacts
+      - name: Download artifact
         uses: actions/download-artifact@v4
-        with:
-          path: artifacts
 
-      - name: Delete old nightly release
+      - name: Delete old release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh release delete "Prootix Nightly" --yes || true
+        run: gh release delete "Prootix Nightly" --yes || true
 
-      - name: Create new nightly release
+      - name: Create Nightly Release
         uses: softprops/action-gh-release@v1
         with:
           body: |
             ## Nightly Build
             
-            **Build Date:** ${{ needs.nightly-checks.outputs.date }}
-            **Commit:** ${{ needs.nightly-checks.outputs.commit }}
+            **Build Date:** ${{ github.event.head_commit.timestamp }}
             
-            ### Download
-            
-            | Architecture | APK | Checksum |
-            |-------------|-----|----------|
-            | arm64-v8a | [prootix-nightly-arm64.apk](prootix-nightly-arm64.apk) | [SHA256](prootix-nightly-arm64.apk.sha256) |
-            | armeabi-v7a | [prootix-nightly-arm.apk](prootix-nightly-arm.apk) | [SHA256](prootix-nightly-arm.apk.sha256) |
-            | x86_64 | [prootix-nightly-x86_64.apk](prootix-nightly-x86_64.apk) | [SHA256](prootix-nightly-x86_64.apk.sha256) |
-            | Universal | [prootix-nightly-universal.apk](prootix-nightly-universal.apk) | [SHA256](prootix-nightly-universal.apk.sha256) |
-            
-            ⚠️ **This is a nightly build and may be unstable.**
+            Download the APK below.
           tag_name: nightly
           release_name: 'Prootix Nightly'
           prerelease: true
-          files: |
-            artifacts/prootix-nightly-arm64-v8a/prootix-nightly-arm64-v8a-*.apk
-            artifacts/prootix-nightly-armeabi-v7a/prootix-nightly-armeabi-v7a-*.apk
-            artifacts/prootix-nightly-x86_64/prootix-nightly-x86_64-*.apk
-            artifacts/prootix-nightly-universal/prootix-nightly-universal-*.apk
-            artifacts/prootix-nightly-arm64-v8a/*.sha256
-            artifacts/prootix-nightly-armeabi-v7a/*.sha256
-            artifacts/prootix-nightly-x86_64/*.sha256
-            artifacts/prootix-nightly-universal/*.sha256
+          files: prootix-nightly/*.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
