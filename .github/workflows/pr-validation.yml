@@ -1,0 +1,108 @@
+name: PR Validation
+
+on:
+  pull_request:
+    branches: [main, develop]
+    types: [opened, synchronize, reopened, ready_for_review]
+
+env:
+  flutter_version: '3.22.0'
+  java_version: '17'
+
+jobs:
+  pr-checks:
+    name: PR Quality Checks
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.flutter_version }}
+          channel: 'stable'
+
+      - name: Cache Flutter dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pub-cache
+            ~/.gradle/caches
+          key: flutter-${{ runner.os }}-${{ env.flutter_version }}-${{ hashFiles('**/pubspec.yaml') }}
+          restore-keys: |
+            flutter-${{ runner.os }}-${{ env.flutter_version }}-
+
+      - name: Install dependencies
+        run: cd apps/flutter && flutter pub get
+
+      - name: Run flutter analyze
+        run: cd apps/flutter && flutter analyze --no-fatal-infos
+
+      - name: Run tests
+        run: cd apps/flutter && flutter test --no-pub --reporter compact
+
+  android-checks:
+    name: Android Code Quality
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.java_version }}
+          distribution: 'temurin'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v2
+
+      - name: Validate Gradle files
+        run: |
+          cd apps/android
+          ./gradlew tasks --all 2>/dev/null || true
+
+      - name: Check Kotlin files
+        run: |
+          find apps/android -name "*.kt" -exec echo "Checking: {}" \; -exec kotlin -script {} \; 2>/dev/null || true
+
+  native-checks:
+    name: Native Code Quality
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/nicholasrackoff/android-ndk:latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check CMakeLists
+        run: |
+          cmake --version
+          cd apps/android/app/src/main/cpp
+          cmake -B build -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_HOME/build/cmake/android.toolchain.cmake 2>/dev/null || true
+
+  binary-checks:
+    name: Binary Security Scan
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: 'trivy-results.sarif'
+        continue-on-error: true

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Prootix</string>
+    <string name="app_description">Android Linux Workstation</string>
+    <string name="notification_channel_terminal">Terminal Sessions</string>
+    <string name="notification_channel_download">Downloads</string>
+</resources>

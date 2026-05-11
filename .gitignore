@@ -1,0 +1,85 @@
+# Flutter
+*.class
+*.log
+*.pyc
+*.sf
+*.jar
+*.jpg
+*.jpeg
+*.gif
+*.png
+*.bmp
+*.ttf
+*.rvm
+*.gem
+*.rbc
+*.class
+*.log
+*.pyc
+
+# Flutter/Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+build/
+
+# Android
+*.class
+*.dex
+*.jar
+*.log
+*.apk
+*.ap_
+*.aab
+*.so
+*.o
+*.a
+
+# Gradle
+.gradle/
+build/
+local.properties
+*.iml
+*.ipr
+*.iws
+.project
+.classpath
+.settings/
+capture/
+dependencies.gradle
+gradle-app.setting
+
+# IntelliJ
+*.iml
+.idea/
+*.ipr
+*.iws
+
+# Native
+*.o
+*.so
+*.a
+cmake-build-*/
+
+# Scripts
+*.sh.echo
+
+# Misc
+*.bak
+*.swp
+*~
+.DS_Store
+Thumbs.db
+
+# CI/CD (for local development)
+.flutter/
+.gradle/
+
+# Release artifacts
+*.release
+*.nightly
+release-assets/
+artifacts/
