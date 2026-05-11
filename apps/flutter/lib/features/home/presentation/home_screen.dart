@@ -208,7 +208,7 @@ class HomeScreen extends ConsumerWidget {
             const SizedBox(width: 12),
             Expanded(
               child: _ActionCard(
-                icon: Icons.ssh,
+                icon: Icons.vpn_key,
                 title: 'SSH Connect',
                 color: ColorSchemes.neonOrange,
                 onTap: () {},

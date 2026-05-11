@@ -10,13 +10,6 @@ class ColorSchemes {
   static const Color background = Color(0xFF0A0E14);
   static const Color surface = Color(0xFF12161F);
   static const Color surfaceVariant = Color(0xFF1A1F28);
-  static const Color error = Color(0xFFFF4757);
-
-  static const Color onPrimary = Color(0xFF0A0E14);
-  static const Color onSecondary = Color(0xFFFFFFFF);
-  static const Color onBackground = Color(0xFFFFFFFF);
-  static const Color onSurface = Color(0xFFFFFFFF);
-  static const Color onError = Color(0xFFFFFFFF);
 
   static const Color textPrimary = Color(0xFFFFFFFF);
   static const Color textSecondary = Color(0xFFB0B8C4);
@@ -34,6 +27,12 @@ class ColorSchemes {
   static const Color terminalBlue = Color(0xFF00BFFF);
   static const Color terminalRed = Color(0xFFFF6B6B);
 
+  static const Color error = Color(0xFFFF4757);
+  static const Color onPrimary = Color(0xFF0A0E14);
+  static const Color onSecondary = Color(0xFFFFFFFF);
+  static const Color onSurface = Color(0xFFFFFFFF);
+  static const Color onError = Color(0xFFFFFFFF);
+
   static ColorScheme get darkColorScheme => const ColorScheme.dark(
     primary: primary,
     onPrimary: onPrimary,
@@ -45,11 +44,9 @@ class ColorSchemes {
     onSecondaryContainer: onSecondary,
     tertiary: accent,
     onTertiary: onPrimary,
-    background: background,
-    onBackground: onBackground,
     surface: surface,
     onSurface: onSurface,
-    surfaceVariant: surfaceVariant,
+    surfaceContainerHighest: surfaceVariant,
     onSurfaceVariant: textSecondary,
     error: error,
     onError: onError,

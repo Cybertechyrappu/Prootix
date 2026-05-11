@@ -8,7 +8,6 @@ class SettingsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final themeMode = ref.watch(themeModeProvider);
     final notifications = ref.watch(notificationsEnabledProvider);
     final autoStart = ref.watch(autoStartEnabledProvider);
     final darkMode = ref.watch(darkModeProvider);
