@@ -1,12 +1,12 @@
 plugins {
-    id("com.android.application")
-    id("kotlin-android")
-    id("dev.flutter.flutter-gradle-plugin")
+    id "com.android.application"
+    id "kotlin-android"
+    id "dev.flutter.flutter-gradle-plugin"
 }
 
 android {
     namespace = "com.qorvode.prootix"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 34
     ndkVersion = "26.1.10909125"
 
     compileOptions {
@@ -21,14 +21,14 @@ android {
     defaultConfig {
         applicationId = "com.qorvode.prootix"
         minSdk = 24
-        targetSdk = flutter.targetSdkVersion
-        versionCode = flutter.versionCode
-        versionName = flutter.versionName
+        targetSdk = 34
+        versionCode = 1
+        versionName = "1.0.0"
     }
 
     buildTypes {
         release {
-            signingConfig = signingConfigs.debug
+            minifyEnabled = false
         }
     }
 }
